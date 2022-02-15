@@ -1,0 +1,37 @@
+{
+    "EE:40:3E:8A:80:5B": {
+        "name": "Arbeitszimmer",
+        "last_update": 0.0,
+        "sensor_data": {}
+    },
+    "CB:D0:EC:A2:15:01": {
+        "name": "Balkon",
+        "last_update": 0.0,
+        "sensor_data": {}
+    },
+    "EA:91:0C:0C:0D:DB": {
+        "name": "Kinderzimmer",
+        "last_update": 0.0,
+        "sensor_data": {}
+    },
+    "DF:5D:35:FC:A5:90": {
+        "name": "Schlafzimmer",
+        "last_update": 0.0,
+        "sensor_data": {}
+    },
+    "FF:9A:73:E3:CC:96": {
+        "name": "Server",
+        "last_update": 0.0,
+        "sensor_data": {}
+    },
+    "FE:B9:6B:0A:C2:AC": {
+        "name": "Travelfriend",
+        "last_update": 0.0,
+        "sensor_data": {}
+    },
+    "F0:A3:2B:07:D8:AD": {
+        "name": "Wohnzimmer",
+        "last_update": 0.0,
+        "sensor_data": {}
+    }
+}
