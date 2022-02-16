@@ -22,7 +22,7 @@ port = 9251
 beacons = None
 config_file = "/home/pi/ruuvi-exporter/config.json"
 debug = False
-testdata = True
+testdata = False
 testdata_file = "/home/pi/ruuvi-exporter/test/ruuvi-data-part.json"
 
 PID_FILENAME = "ruuvi-exporter.pid"
@@ -34,7 +34,7 @@ class UpdateThread (threading.Thread):
         self.name = name
         self.counter = counter
     def run(self):
-        logger.debug(f'start thread {self.name} to fetch ruuvi data in background and update the gauge')
+        logger.info(f'start thread {self.name} to fetch ruuvi data in background and update the gauge')
         while True:
             if beacons.keys():
                 logger.debug(f'fetch data for: {beacons.keys()}')
@@ -85,8 +85,10 @@ def load_config():
 
 def parse_args():
     logger.debug(f'parse args')
-    if True:
+    if debug:
         logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
 
 def setup_logging():
     logging.basicConfig(format='%(asctime)s %(levelname)-9s %(message)s', level=logging.WARNING)
@@ -106,7 +108,7 @@ def log_config_and_process():
         sys.exit(e.errno)
 
 def start_metrics_server():
-    logger.debug(f'Starting HTTP server on port {port} for Prometheus scraping')
+    logger.info(f'Starting HTTP server on port {port} for Prometheus scraping')
     start_http_server(port)
 
 def sigterm_handler(sig, frame):
