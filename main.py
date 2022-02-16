@@ -7,6 +7,7 @@ import sys
 import json
 import threading
 import logging
+import os
 from pprint import pformat
 
 from prometheus_client import Gauge, start_http_server
@@ -24,7 +25,7 @@ debug = False
 testdata = True
 testdata_file = "/home/pi/ruuvi-exporter/test/ruuvi-data-part.json"
 
-class updateThread (threading.Thread):
+class UpdateThread (threading.Thread):
     def __init__(self, threadID, name, counter):
         threading.Thread.__init__(self)
         self.threadID = threadID
@@ -69,7 +70,7 @@ class updateThread (threading.Thread):
     #            time.sleep(update_delay)
 
 def start_ruuvi_update_thread():
-    thread = updateThread(1, "Ruuvi-Update-Thread", 1)
+    thread = UpdateThread(1, "Ruuvi-Update-Thread", 1)
     thread.start()
 
 def load_config():
@@ -92,11 +93,19 @@ def setup_logging():
     # logger.info(f'test info')
     # logger.debug(f'test debug')
 
-def log_config():
+def log_config_and_process():
     config = pformat(beacons)
     logger.debug(f'config: {config}')
+    pid = os.getpid()
+    logger.debug(f'pid: {pid}')
+    try:
+        with open("ruuvi-exporter.pid", "x") as pid_file:
+            pid_file.write(str(pid))
+    except OSError as e:
+        logger.error(f'can\'t open ruuvi-exporter.pid: {e}, process is either running or has a stale pid file!')
+        sys.exit(e.errno)
 
-def start_server():
+def start_metrics_server():
     logger.debug(f'Starting HTTP server on port {port} for Prometheus scraping')
     start_http_server(port)
 
@@ -104,8 +113,9 @@ def main():
     setup_logging()
     parse_args()
     load_config()
-    log_config()
+    log_config_and_process()
     start_ruuvi_update_thread()
+    # start_metrics_server()
 
 if __name__ == '__main__':
     main()
