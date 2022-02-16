@@ -22,7 +22,7 @@ beacons = None
 config_file = "/home/pi/ruuvi-exporter/config.json"
 debug = False
 testdata = True
-testdata_file = "/home/pi/ruuvi-exporter/test/ruuvi-data.json"
+testdata_file = "/home/pi/ruuvi-exporter/test/ruuvi-data-part.json"
 
 class updateThread (threading.Thread):
     def __init__(self, threadID, name, counter):
@@ -44,21 +44,28 @@ class updateThread (threading.Thread):
                     logger.debug(f'fetch data from {testdata_file}')
                     datas = json.load(test_file)
             data_response = pformat(datas)
-            logger.debug(f'data: {datas}')
+            logger.debug(f'data:\n{data_response}')
             for key, value in datas.items() :
-                logger.debug(f'=== {key} ===')
                 b = beacons[key]
                 location = b['name']
-                logger.debug(f'location: {location}')
+                logger.debug(f'==== {key} == location: {location} ====')
                 sensor_data = datas[key]
-                logger.debug(f"temperature: {sensor_data['temperature']}")
-                logger.debug(f"humidity: {(sensor_data['humidity'] / 100.0)}")
-                logger.debug(f"pressure: {sensor_data['pressure']}")
-                logger.debug(f"battery: {(sensor_data['battery'] / 1000.0)}")
-                temp_gauge.labels(location).set(sensor_data['temperature'])
-                humidity_gauge.labels(location).set(sensor_data['humidity'] / 100.0)
-                pressure_gauge.labels(location).set(sensor_data['pressure'])
-                battery_gauge.labels(location).set(sensor_data['battery'] / 1000.0)
+                temperature = sensor_data['temperature']
+                humidity = (sensor_data['humidity'] / 100.0)
+                pressure = sensor_data['pressure']
+                battery = (sensor_data['battery'] / 1000.0)
+                if temperature != 0:
+                    logger.debug(f"temperature: {temperature}")
+                    temp_gauge.labels(location).set(temperature)
+                if humidity != 0:
+                    logger.debug(f"humidity: {humidity}")
+                    humidity_gauge.labels(location).set(humidity)
+                if pressure != 0:
+                    logger.debug(f"pressure: {pressure}")
+                    pressure_gauge.labels(location).set(pressure)
+                if battery != 0:
+                    logger.debug(f"battery: {battery}")
+                    battery_gauge.labels(location).set(battery)
     #            time.sleep(update_delay)
 
 def start_ruuvi_update_thread():
