@@ -21,6 +21,8 @@ port = 9251
 beacons = None
 config_file = "/home/pi/ruuvi-exporter/config.json"
 debug = False
+testdata = True
+testdata_file = "/home/pi/ruuvi-exporter/test/ruuvi-data.json"
 
 class updateThread (threading.Thread):
     def __init__(self, threadID, name, counter):
@@ -33,7 +35,15 @@ class updateThread (threading.Thread):
 #        while True:
         if beacons.keys():
             logger.debug(f'fetch data for: {beacons.keys()}')
-            datas = RuuviTagSensor.get_data_for_sensors(beacons.keys(), 10)
+            if not testdata:
+                logger.debug(f'fetch data from ruuvi tag library')
+                datas = RuuviTagSensor.get_data_for_sensors(beacons.keys(), 10)
+            else:
+                datas = {}
+                with open(testdata_file) as test_file:
+                    logger.debug(f'fetch data from {testdata_file}')
+                    datas = json.load(test_file)
+            data_response = pformat(datas)
             logger.debug(f'data: {datas}')
             for key, value in datas.items() :
                 logger.debug(f'=== {key} ===')
