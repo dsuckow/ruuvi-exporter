@@ -126,7 +126,7 @@ def main():
     load_config()
     log_config_and_process()
     start_ruuvi_update_thread()
-    # start_metrics_server()
+    start_metrics_server()
 
 if __name__ == '__main__':
     main()
