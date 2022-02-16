@@ -41,10 +41,10 @@ class updateThread (threading.Thread):
                 location = b['name']
                 logger.debug(f'location: {location}')
                 sensor_data = datas[key]
-                logger.debug(f'temperature: {sensor_data['temperature']}')
-                logger.debug(f'humidity: {(sensor_data['humidity'] / 100.0)}')
-                logger.debug(f'pressure: {sensor_data['pressure']}')
-                logger.debug(f'battery: {(sensor_data['battery'] / 1000.0)}')
+                logger.debug(f"temperature: {sensor_data['temperature']}")
+                logger.debug(f"humidity: {(sensor_data['humidity'] / 100.0)}")
+                logger.debug(f"pressure: {sensor_data['pressure']}")
+                logger.debug(f"battery: {(sensor_data['battery'] / 1000.0)}")
                 temp_gauge.labels(location).set(sensor_data['temperature'])
                 humidity_gauge.labels(location).set(sensor_data['humidity'] / 100.0)
                 pressure_gauge.labels(location).set(sensor_data['pressure'])
