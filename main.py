@@ -13,7 +13,6 @@ from pprint import pformat
 from prometheus_client import Gauge, start_http_server
 from ruuvitag_sensor.ruuvi import RuuviTagSensor
 
-update_delay = 30
 beacons = None
 testdata = False
 testdata_file = "/home/pi/ruuvi-exporter/test/ruuvi-data-part.json"
@@ -54,7 +53,7 @@ def parse_data(data):
         b = beacons[key]
         location = b['name']
         logger.debug(f'==== {key} == location: {location} ====')
-        sensor_data = data[key]
+        sensor_data = value
         temperature = sensor_data['temperature']
         humidity = (sensor_data['humidity'] / 100.0)
         pressure = sensor_data['pressure']
@@ -88,6 +87,8 @@ def parse_args():
     group.add_argument('--quiet', '-q', help='reduce logging to errors only', action='store_true')
     parser.add_argument('--config', '-c', help='config file containing the RuuviTags', default='/home/pi/ruuvi-exporter/config.json')
     parser.add_argument('--port', '-p', help='port for prometheus scrapping', default=9251)
+    parser.add_argument('--thread', '-t', help='use thread instead of update handler', action='store_true')
+    parser.add_argument('--thread-delay', '-d', help='delay between fetch data', default=30)
     args = parser.parse_args()
     if args.verbose:
         logger.setLevel(logging.DEBUG)
@@ -96,9 +97,11 @@ def parse_args():
     else:
         logger.setLevel(logging.INFO)
     logger.debug(f'parse args {args}')
-    global config_file, port
+    global config_file, port, update_delay, update_thread
     config_file = args.config
     port = args.port
+    update_delay = args.thread_delay
+    update_thread = args.thread
 
 def setup_logging():
     logging.basicConfig(format='%(asctime)s %(levelname)-9s %(message)s', level=logging.WARNING)
@@ -106,7 +109,7 @@ def setup_logging():
     logger = logging.getLogger(__name__)
 
 def log_config_and_process():
-    config = pformat(beacons)
+    config = str(beacons)
     logger.debug(f'config: {config}')
     pid = os.getpid()
     logger.debug(f'pid: {pid}')
@@ -139,6 +142,39 @@ def init_signal_handler():
     signal.signal(signal.SIGINT, sigterm_handler)
     signal.signal(signal.SIGTERM, sigterm_handler)
 
+def handle_ruuvi_data(update):
+    data_output = pformat(update)
+    key, data = update
+    logger.debug(f'got ruuvi data:\n{data_output}')
+    logger.debug(f'key {key}')
+    logger.debug(f'data {data}')
+    if key in beacons:
+        b = beacons[key]
+        location = b['name']
+    else:
+        location = key
+    logger.debug(f'location {location}')
+    temperature = data['temperature']
+    humidity = (data['humidity'] / 100.0)
+    pressure = data['pressure']
+    battery = (data['battery'] / 1000.0)
+    if temperature != 0:
+        logger.debug(f"temperature: {temperature}")
+        temp_gauge.labels(location).set(temperature)
+    if humidity != 0:
+        logger.debug(f"humidity: {humidity}")
+        humidity_gauge.labels(location).set(humidity)
+    if pressure != 0:
+        logger.debug(f"pressure: {pressure}")
+        pressure_gauge.labels(location).set(pressure)
+    if battery != 0:
+        logger.debug(f"battery: {battery}")
+        battery_gauge.labels(location).set(battery)
+
+def register_ruuvi_handler():
+    logger.debug('register handler for ruuvi_data')
+    RuuviTagSensor.get_datas(handle_ruuvi_data)
+
 def main():
     try:
         setup_logging()
@@ -146,8 +182,11 @@ def main():
         parse_args()
         load_config()
         log_config_and_process()
-        start_ruuvi_update_thread()
         start_metrics_server()
+        if update_thread:
+            start_ruuvi_update_thread()
+        else:
+            register_ruuvi_handler()
     except Exception as e:
         logger.error(e)
     finally:
