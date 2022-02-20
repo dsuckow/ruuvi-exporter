@@ -1,5 +1,17 @@
 # ruuvi-exporter
 
+## Prerequisits
+
+Install bleson
+```
+pip install git+https://github.com/TheCellule/python-bleson
+```
+
+```
+export RUUVI_BLE_ADAPTER="Bleson"
+```
+
+
 ## Execute locally
 ```
 /home/pi/ruuvi-exporter/venv/bin/python3 main.py

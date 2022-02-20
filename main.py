@@ -21,9 +21,11 @@ update_delay = 30
 port = 9251
 beacons = None
 config_file = "/home/pi/ruuvi-exporter/config.json"
-debug = False
+debug = True
 testdata = False
 testdata_file = "/home/pi/ruuvi-exporter/test/ruuvi-data-part.json"
+only_once = True # set to True if you want to run the scrapping only once
+
 
 PID_FILENAME = "ruuvi-exporter.pid"
 
@@ -35,7 +37,8 @@ class UpdateThread (threading.Thread):
         self.counter = counter
     def run(self):
         logger.info(f'start thread {self.name} to fetch ruuvi data in background and update the gauge')
-        while True:
+        update_loop = True
+        while update_loop:
             if beacons.keys():
                 logger.debug(f'fetch data for: {beacons.keys()}')
                 if not testdata:
@@ -47,7 +50,10 @@ class UpdateThread (threading.Thread):
                         logger.debug(f'fetch data from {testdata_file}')
                         datas = json.load(test_file)
                 parse_data(datas)
-            time.sleep(update_delay)
+            if only_once:
+                update_loop = False
+            else:
+                time.sleep(update_delay)
 
 def parse_data(data):
     data_response = pformat(data)
@@ -113,22 +119,31 @@ def start_metrics_server():
 
 def sigterm_handler(sig, frame):
     logger.info(f'receive signal {sig} on {frame}')
+    remove_pid_file()
+    sys.exit(0)
+
+def remove_pid_file():
     if os.path.exists(PID_FILENAME):
         os.remove(PID_FILENAME)
-    sys.exit(0)
 
 def init_signal_handler():
     signal.signal(signal.SIGINT, sigterm_handler)
     signal.signal(signal.SIGTERM, sigterm_handler)
 
 def main():
-    setup_logging()
-    init_signal_handler()
-    parse_args()
-    load_config()
-    log_config_and_process()
-    start_ruuvi_update_thread()
-    start_metrics_server()
+    try:
+        setup_logging()
+        init_signal_handler()
+        parse_args()
+        load_config()
+        log_config_and_process()
+        start_ruuvi_update_thread()
+        start_metrics_server()
+    except Exception as e:
+        logger.error(e)
+    finally:
+        remove_pid_file()
+
 
 if __name__ == '__main__':
     main()
