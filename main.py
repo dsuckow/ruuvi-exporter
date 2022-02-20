@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import time
-import pprint
 import signal
 import sys
 import json
@@ -10,23 +9,16 @@ import logging
 import os
 import argparse
 from pprint import pformat
+from xmlrpc.client import Boolean
 
 from prometheus_client import Gauge, start_http_server
 from ruuvitag_sensor.ruuvi import RuuviTagSensor
 
-temp_gauge = Gauge('ruuvi_temperature_c', 'Temperature in Celsius', ['location'])
-humidity_gauge = Gauge('ruuvi_humidity_percent', 'Humidity %', ['location'])
-pressure_gauge = Gauge('ruuvi_pressure_hpa', 'Air pressure hPa', ['location'])
-battery_gauge = Gauge('ruuvi_battery_v', 'Battery V', ['location'])
 update_delay = 30
-port = 9251
 beacons = None
-config_file = "/home/pi/ruuvi-exporter/config.json"
-debug = True
 testdata = False
 testdata_file = "/home/pi/ruuvi-exporter/test/ruuvi-data-part.json"
 only_once = True # set to True if you want to run the scrapping only once
-
 
 PID_FILENAME = "ruuvi-exporter.pid"
 
@@ -127,6 +119,11 @@ def log_config_and_process():
         sys.exit(e.errno)
 
 def start_metrics_server():
+    global temp_gauge, humidity_gauge, pressure_gauge, battery_gauge
+    temp_gauge = Gauge('ruuvi_temperature_c', 'Temperature in Celsius', ['location'])
+    humidity_gauge = Gauge('ruuvi_humidity_percent', 'Humidity %', ['location'])
+    pressure_gauge = Gauge('ruuvi_pressure_hpa', 'Air pressure hPa', ['location'])
+    battery_gauge = Gauge('ruuvi_battery_v', 'Battery V', ['location'])
     logger.info(f'Starting HTTP server on port {port} for Prometheus scraping')
     start_http_server(port)
 
