@@ -8,6 +8,7 @@ import json
 import threading
 import logging
 import os
+import argparse
 from pprint import pformat
 
 from prometheus_client import Gauge, start_http_server
@@ -90,11 +91,23 @@ def load_config():
         beacons = json.load(json_file)
 
 def parse_args():
-    logger.debug(f'parse args')
-    if debug:
+    parser = argparse.ArgumentParser(prog='ruuvi-exporter')
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--verbose', '-v', help='activate verbose logging', action='store_true')
+    group.add_argument('--quiet', '-q', help='reduce logging to errors only', action='store_true')
+    parser.add_argument('--config', '-c', help='config file containing the RuuviTags', default='/home/pi/ruuvi-exporter/config.json')
+    parser.add_argument('--port', '-p', help='port for prometheus scrapping', default=9251)
+    args = parser.parse_args()
+    if args.verbose:
         logger.setLevel(logging.DEBUG)
+    elif args.quiet:
+        logger.setLevel(logging.ERROR)
     else:
         logger.setLevel(logging.INFO)
+    logger.debug(f'parse args {args}')
+    global config_file, port
+    config_file = args.config
+    port = args.port
 
 def setup_logging():
     logging.basicConfig(format='%(asctime)s %(levelname)-9s %(message)s', level=logging.WARNING)
