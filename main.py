@@ -86,7 +86,7 @@ def parse_args():
     group.add_argument('--verbose', '-v', help='activate verbose logging', action='store_true')
     group.add_argument('--quiet', '-q', help='reduce logging to errors only', action='store_true')
     parser.add_argument('--config', '-c', help='config file containing the RuuviTags', default='/home/pi/ruuvi-exporter/config.json')
-    parser.add_argument('--port', '-p', help='port for prometheus scrapping', default=9251)
+    parser.add_argument('--port', '-p', help='port for prometheus scrapping', default=9251, type=int)
     parser.add_argument('--thread', '-t', help='use thread instead of update handler', action='store_true')
     parser.add_argument('--thread-delay', '-d', help='delay between fetch data', default=30)
     args = parser.parse_args()
@@ -114,7 +114,7 @@ def log_config_and_process():
     pid = os.getpid()
     logger.debug(f'pid: {pid}')
     try:
-        with open(PID_FILENAME, "x") as pid_file:
+        with open(PID_FILENAME, "w") as pid_file:
             pid_file.write(str(pid))
     except OSError as e:
         logger.error(f'can\'t open ruuvi-exporter.pid: {e}, process is either running or has a stale pid file!')
