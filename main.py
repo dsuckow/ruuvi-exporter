@@ -9,7 +9,6 @@ import logging
 import os
 import argparse
 from pprint import pformat
-from xmlrpc.client import Boolean
 
 from prometheus_client import Gauge, start_http_server
 from ruuvitag_sensor.ruuvi import RuuviTagSensor
@@ -153,7 +152,6 @@ def main():
         logger.error(e)
     finally:
         remove_pid_file()
-
 
 if __name__ == '__main__':
     main()
